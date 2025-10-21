@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title> octa </title>
+
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" />
+
+  <style>
+      
+
+    .bat {
+      position: fixed;
+      font-size: 28px;
+      color: #fff;
+      opacity: 0.9;
+      animation: fly linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes fly {
+      0% {
+        transform: translateX(-10vw) translateY(0) rotate(0deg);
+        opacity: 0;
+      }
+      10% { opacity: 1; }
+      50% {
+        transform: translateX(50vw) translateY(-10vh) rotate(-10deg);
+      }
+      100% {
+        transform: translateX(120vw) translateY(10vh) rotate(10deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes flap {
+      0%, 100% { transform: scaleY(1); }
+      50% { transform: scaleY(0.7); }
+    }
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'Roboto', sans-serif;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      height: 100%; width: 100%;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.9)),
+        url('https://pbs.twimg.com/media/Gp972OIWMAAeIHy?format=jpg&name=4096x4096') no-repeat center center/cover;
+      z-index: -1;
+    }
+    .small-note {color: #bbb; font-size: .85rem; text-align:center; padding:10px 0;}
+    nav {
+      background: rgba(0,0,0,0.90);
+      position: fixed; top: 0; left: 0;
+      width: 100%;
+      z-index: 999;
+    }
+    .container {margin-top: 160px;}
+    .movie-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px; justify-content: center;
+    }
+    .movie-card {
+      width: 100%; aspect-ratio: 2/3;
+      border-radius: 10px; overflow: hidden;
+      position: relative; cursor: pointer;
+      transition: transform 0.3s ease, opacity 0.6s ease;
+      background: #222; opacity: 0;
+    }
+    .movie-card.show {opacity: 1;}
+    .movie-card:hover {transform: scale(1.05);}
+    .movie-card img {width: 100%; height: 100%; object-fit: cover; display: block;}
+    .movie-title {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 10px;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.5));
+      color: #fff; font-weight: bold;
+      text-align: center; font-size: 0.5rem;
+    }
+    .rating {
+      position: absolute; top: 6px; left: 1px;
+      background: rgba(0,0,0,0.7);
+      border-radius: 10px; padding: 3px 6px;
+      display: flex; flex-direction: column; align-items: center; font-size: 0.7rem;
+    }
+    .rating i {color: #ffcc00; font-size: .5rem; margin-right: 2px;}
+    .year {
+      font-size: 0.9rem; color: #ddd; margin-top: 1px;
+    }
+    .favorite {
+      position: absolute; top: 8px; right: 8px;
+      cursor: pointer; color: white;
+      background: rgba(0,0,0,0.7);
+      border-radius: 50%; padding: 6px;
+      width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.3s, transform 0.3s;
+    }
+    .favorite:hover {transform: scale(1.1);}
+    .favorite.active {color: #e50914; background: rgba(255,255,255,0.15);}
+    .tabs-container {
+      display: flex; overflow-x: auto;
+      background: rgba(0,0,0,0.90);
+      white-space: nowrap; padding: 10px 0;
+    }
+    .tab-item {
+      color: #ccc; margin: 0 15px;
+      font-weight: bold; cursor: pointer;
+      font-size: 1rem; transition: color 0.3s;
+    }
+    .tab-item.active {
+      color: #fff; border-bottom: 2px solid #e50914;
+      padding-bottom: 3px;
+    }
+    .btn-ver-mas {
+      display: block; margin: 30px auto;
+      background: #e50914; color: #fff;
+      border: none; border-radius: 25px;
+      padding: 10px 25px; font-size: 1rem;
+      cursor: pointer; transition: background 0.3s;
+    }
+    .btn-ver-mas:hover {background: #b00610;}
+    .skeleton {
+      background: linear-gradient(90deg,#2a2a2a 25%,#3a3a3a 50%,#2a2a2a 75%);
+      background-size: 200% 100%; animation: shimmer 1.5s infinite;
+      border-radius: 10px; width: 100%; aspect-ratio: 2/3;
+    }
+    @keyframes shimmer {
+      0% {background-position: -200% 0;}
+      100% {background-position: 200% 0;}
+    }
+    .search-container {
+      position: absolute; left: 15px; top: 10px;
+      display: flex; align-items: center;
+    }
+    .search-icon {
+      cursor: pointer; color: #fff;
+      font-size: 28px; transition: transform 0.3s ease;
+    }
+    .search-icon:hover {transform: scale(1.1);}
+    #buscar {
+      background: rgba(0,0,0,0.8); color: #fff;
+      border: none; border-radius: 20px;
+      padding: 5px 10px; width: 0;
+      font-size: 1rem; margin-left: 10px;
+      outline: none; opacity: 0;
+      transition: width 0.4s ease, opacity 0.4s ease;
+    }
+    #buscar::placeholder {color: #888;}
+    .search-container.active #buscar {width: 180px; opacity: 1;}
+    @media (max-width: 900px) {.movie-grid {grid-template-columns: repeat(4,1fr);}}
+    @media (max-width: 600px) {.movie-grid {grid-template-columns: repeat(3,1fr); gap: 10px;} .btn-ver-mas {width: 50%;}}
+    @media (min-width: 1600px) {
+  .movie-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <div class="nav-wrapper">
+      <div class="search-container">
+        <i class="material-icons search-icon" id="toggleSearch">search</i>
+        <input type="text" id="buscar" placeholder="Buscar..." />
+      </div>
+      <a href="#" data-target="menu" class="sidenav-trigger right"><i class="material-icons">menu</i></a>
+    </div>
+    <div class="tabs-container" id="genreTabs"></div>
+  </nav>
+
+  <ul id="menu" class="sidenav">
+    <li><a href="go:tv"> Tv Online </a></li>
+     <li><a href="go:adult"> Tv Adult +18</a></li>
+    <li><a href="go:series"> Series </a></li>
+    <li><a href="go:anime"> Heintai +18 </a></li>
+    
+  </ul>
+
+  <div class="container">
+    <div id="movieContainer" class="movie-grid"></div>
+    <button id="verMasBtn" class="btn-ver-mas" style="display:none;">Ver más</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      M.Sidenav.init(document.querySelectorAll('.sidenav'));
+    });
+
+    const toggleSearch = document.getElementById("toggleSearch");
+    const searchContainer = document.querySelector(".search-container");
+    const inputBuscar = document.getElementById("buscar");
+
+    toggleSearch.addEventListener("click", () => {
+      searchContainer.classList.toggle("active");
+      if (searchContainer.classList.contains("active")) inputBuscar.focus();
+      else {inputBuscar.blur(); inputBuscar.value = ""; inputBuscar.dispatchEvent(new Event("input"));}
+    });
+
+    const API_KEY = "cc5b94165972aa509a349161d13d4fc9";
+    const TMDB_URL = "https://api.themoviedb.org/3";
+    const IMG_URL = "https://image.tmdb.org/t/p/w500";
+    const PLACEHOLDER = "https://via.placeholder.com/500x750?text=No+Image";
+
+    const peliculasManual = [
+        
+    ];
+
+    let allMovies = [];
+    let estrenosMovies = [];
+    let genresMap = new Map();
+    let currentGenre = "Todas";
+
+    const getFavorites = () => JSON.parse(localStorage.getItem("favoritos")) || [];
+    const saveFavorites = (favs) => localStorage.setItem("favoritos", JSON.stringify(favs));
+
+    function openMovie(id) {
+      localStorage.setItem("peliculasCache", JSON.stringify(allMovies));
+      window.location.href = `pelicula.html?id=${id}`;
+    }
+
+    function createMovieCard(movie) {
+      const imgSrc = movie.poster_path ? IMG_URL + movie.poster_path : PLACEHOLDER;
+      const rating = movie.vote_average ? movie.vote_average.toFixed(1) : "N/A";
+      const year = movie.release_date ? movie.release_date.slice(0,4) : "----";      
+      const favorites = getFavorites();
+      const isFavorite = favorites.includes(movie.id);
+
+      const card = document.createElement("div");
+      card.classList.add("movie-card");
+      card.innerHTML = `
+        <img src="${imgSrc}" alt="${movie.title}" onclick="openMovie(${movie.id})">
+        <div class="rating">
+            <div class="year">${year}</div>
+          <div><i class="material-icons tiny">star</i>${rating}</div>
+          
+        </div>
+        <div class="favorite ${isFavorite ? "active" : ""}" data-id="${movie.id}">
+          <i class="material-icons">favorite</i>
+        </div>
+        <div class="movie-title">${movie.title}</div>
+      `;
+      card.querySelector(".favorite").addEventListener("click", (e) => {
+        e.stopPropagation();
+        const id = movie.id;
+        let favs = getFavorites();
+        if (favs.includes(id)) {
+          favs = favs.filter(f => f !== id);
+          e.currentTarget.classList.remove("active");
+        } else {
+          favs.push(id);
+          e.currentTarget.classList.add("active");
+        }
+        saveFavorites(favs);
+        if (currentGenre === "Favoritos") renderMovies("Favoritos");
+      });
+      setTimeout(() => card.classList.add("show"), 100);
+      return card;
+    }
+
+    function renderMovies(genre = "Todas", append = false) {
+      const container = document.getElementById("movieContainer");
+      const btnVerMas = document.getElementById("verMasBtn");
+      let moviesToShow = [];
+
+      if (genre === "Favoritos") {
+        const favs = getFavorites();
+        moviesToShow = allMovies.filter(m => favs.includes(m.id));
+      } else if (genre === "Estrenos 2025") {
+        moviesToShow = estrenosMovies;
+      } else if (genre === "Todas") {
+        moviesToShow = allMovies;
+      } else {
+        moviesToShow = genresMap.get(genre) || [];
+      }
+
+      if (!append) container.innerHTML = "";
+      const start = append ? container.childElementCount : 0;
+      const nextMovies = moviesToShow.slice(start, start + 60);
+
+      btnVerMas.style.display = moviesToShow.length > start + nextMovies.length ? "block" : "none";
+      if (btnVerMas.style.display === "block") btnVerMas.onclick = () => renderMovies(genre, true);
+
+      nextMovies.forEach(() => {
+        const skeleton = document.createElement("div");
+        skeleton.classList.add("skeleton");
+        container.appendChild(skeleton);
+      });
+
+      setTimeout(() => {
+        container.querySelectorAll(".skeleton").forEach(s => s.remove());
+        nextMovies.forEach(movie => container.appendChild(createMovieCard(movie)));
+      }, 400);
+    }
+
+    function renderTabs() {
+      const tabs = document.getElementById("genreTabs");
+      tabs.innerHTML = "";
+      const baseTabs = ["Todas", "Favoritos","Estrenos 2025"];
+      [...baseTabs, ...genresMap.keys()].forEach(tab => {
+        const el = document.createElement("div");
+        el.classList.add("tab-item");
+        el.textContent = tab;
+        if (tab === currentGenre) el.classList.add("active");
+        el.addEventListener("click", () => {
+          currentGenre = tab;
+          updateActiveTab();
+          renderMovies(tab);
+        });
+        tabs.appendChild(el);
+      });
+    }
+
+    function updateActiveTab() {
+      document.querySelectorAll(".tab-item").forEach(tab => {
+        tab.classList.toggle("active", tab.textContent === currentGenre);
+      });
+    }
+
+    async function loadMovies() {
+      try {
+        const responses = await Promise.all(
+          peliculasManual.map(p =>
+            fetch(`${TMDB_URL}/movie/${p.id}?api_key=${API_KEY}&language=es-MX`).then(r => r.json())
+          )
+        );
+
+        allMovies = responses.filter(r => r && r.id);
+        estrenosMovies = allMovies.filter(m => m.release_date && m.release_date.startsWith("2025"));
+
+        localStorage.setItem("peliculasCache", JSON.stringify(allMovies));
+
+        genresMap.clear();
+        allMovies.forEach(movie => {
+          if (movie.genres && movie.genres.length) {
+            movie.genres.forEach(g => {
+              if (!genresMap.has(g.name)) genresMap.set(g.name, []);
+              genresMap.get(g.name).push(movie);
+            });
+          } else {
+            if (!genresMap.has("Sin categoría")) genresMap.set("Sin categoría", []);
+            genresMap.get("Sin categoría").push(movie);
+          }
+        });
+
+        renderTabs();
+        renderMovies();
+
+        inputBuscar.addEventListener("input", () => {
+          const q = inputBuscar.value.trim().toLowerCase();
+          let list = [];
+          if (currentGenre === "Todas") list = allMovies;
+          else if (currentGenre === "Favoritos") {
+            const favs = getFavorites();
+            list = allMovies.filter(m => favs.includes(m.id));
+          } else if (currentGenre === "Estrenos 2025") list = estrenosMovies;
+          else list = genresMap.get(currentGenre) || [];
+
+          const filtered = q === "" ? list : list.filter(m => m.title.toLowerCase().includes(q));
+          const container = document.getElementById("movieContainer");
+          container.innerHTML = "";
+          filtered.slice(0, 30).forEach(movie => container.appendChild(createMovieCard(movie)));
+          document.getElementById("verMasBtn").style.display = "none";
+        });
+      } catch (err) {
+        console.error("Error cargando películas:", err);
+      }
+    }
+
+    loadMovies();
+  </script>
+  
+  
+  <script>
+    const numBats = 20; // cantidad de murciélagos
+    for (let i = 0; i < numBats; i++) {
+      const bat = document.createElement('span');
+      bat.textContent = '👻';
+      bat.classList.add('bat');
+      const size = 20 + Math.random() * 40;
+      const top = Math.random() * 80;
+      const duration = 8 + Math.random() * 8;
+      const delay = Math.random() * -20;
+      bat.style.fontSize = `${size}px`;
+      bat.style.top = `${top}vh`;
+      bat.style.animationDuration = `${duration}s`;
+      bat.style.animationDelay = `${delay}s`;
+      // efecto de aleteo
+      const flap = document.createElement('span');
+      flap.textContent = '👻';
+      flap.style.display = 'inline-block';
+      flap.style.animation = `flap ${0.5 + Math.random()}s ease-in-out infinite`;
+      bat.textContent = '';
+      bat.appendChild(flap);
+      document.body.appendChild(bat);
+    }
+  </script>
+  
+  
+  
+</body>
+</html>
